@@ -1,4 +1,6 @@
-# Create2-Library
+# Pico-Create2-Library
+Porting this Arduino library for Raspberry Pi Pico in C. Original readme is below:
+
 Arduino Library for communicating with the iRobot Create 2.
 
 Our names are Duncan Lilley and Susan Tuvell.
