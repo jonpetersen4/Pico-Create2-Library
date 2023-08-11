@@ -235,13 +235,10 @@ typedef enum{
 } Sensor;
 
 
-/// Constructor. Initializes a new Create2 object to represent a Create 2
-/// \param[in] serial Pointer to the HardwareSerial port to use to communicate with the Roomba. 
-/// Defaults to &Serial
-/// \param[in] baud the baud rate to use on the serial port. 
+///Initialize serial connection to Roomba
 /// Defaults to 57600, the default for the Roomba.
-Create2(HardwareSerial* serial = &Serial, Baud baud = Baud57600);
 
+void roombInit();
 // Create 2 commands
 
 /// Resets the Create 2. 
@@ -254,41 +251,30 @@ void roombaReset(); //opCode-7
 /// Initialises the serial port to the baud rate given in the constructor
 void roombaStart(); //opCode-128
 
-/// Converts the specified baud code into a baud rate in bits per second
-/// \param[in] baud Baud code, one of Create2::Baud
-/// \return baud rate in bits per second
-// Helper method
-uint32_t baudCodeToBaudRate(Baud baud);
-
-/// Changes the baud rate
-/// \param[in] baud one of the Create2::Baud
-/// The desired baud rate
-void baud(Baud baud); //opCode-129. 
-
 /// Sets the OI to Safe mode.
 /// In Safe mode, the cliff and wheel drop detectors work to prevent Roomba driving off a cliff
-void safeMode(); //opCode-131
+void roombaSafeMode(); //opCode-131
 
 /// Sets the OI to Full mode.
 /// In Full mode, the cliff and wheel drop detectors do not stop the motors: you are responsible
 /// for full control of the Roomba
-void fullMode(); //opCode-132
+void roombaFullMode(); //opCode-132
 
 /// Puts a Roomba in sleep mode.
 ///
-void power(); //opCode-133
+void roombaPower(); //opCode-133
 
 /// Starts the spot cover mode
 /// Changes mode to Passive
-void spot(); //opCode-134
+void roombaSpot(); //opCode-134
 
 /// Starts the defaul cleaning mode
 /// Changes mode to Passive
-void clean(); //opCode-135
+void roombaClean(); //opCode-135
 
 /// Starts the max cleaning mode
 /// Changes mode to Passive
-void maxClean(); //opCode-136
+void roombaMax(); //opCode-136
 
 /// Starts the Create 2 driving with a specified wheel velocity and radius of turn
 /// \param[in] velocity Speed in mm/s 
@@ -319,29 +305,16 @@ void LEDs(uint8_t leds, uint8_t powerColor, uint8_t powerIntensity); //opCode-13
 /// \param[in] data Array of note/duration pairs. See Open Interface manual for details. 
 /// 2 bytes per note, first byte is the note and the second is the duration.
 /// \param[in] length Length of notes array in bytes, so this will be twice the number of notes in the song
-void song(uint8_t songNumber, const uint8_t* data, int length); //opCode-140. 
+void roombaSong(uint8_t songNumber, const uint8_t* data, int length); //opCode-140.
 
 /// Plays a song that has previously been defined by song()
 /// \param[in] songNumber The song number to play. 
 /// 0 to 15
-void playSong(uint8_t songNumber); //opCode-141. 
-
-/// Reads the sensor data for the specified sensor packet ID. Note that different sensor packets have 
-/// different lengths, and it is the callers responsibilty to make sure len agrees with the expected 
-/// length of the sensor data. See the Open Interface manual for details on sensor packet lengths.
-/// Create2.h defines various enums and defines for decoding sensor data.
-/// Blocks untill all len bytes are read or a read timeout occurs.
-/// \param[in] packetID The ID of the sensor packet to read from Create2::Sensor
-/// \param[out] destination Destination where the read data is stored. 
-/// Must have at least length bytes available.
-/// \param[in] length Number of sensor data bytes to read
-/// \return true if all len bytes were successfully read. Returns false in the case of a timeout 
-/// on reading any byte.
-boolean sensors(uint8_t packetID, uint8_t* destination, uint8_t length); //opCode-142.
+void roombaPlaySong(uint8_t songNumber); //opCode-141.
 
 /// Causes roomba to immediately seek the docking station.
 ///
-void seekDock(); //opCode-143
+void roombaSeekDock(); //opCode-143
 
 /// Sets the duty cycle of the PWM outputs for low side driver.
 /// This is used to drive the main brush, side brush, and vacuum at various speeds.
@@ -354,57 +327,28 @@ void seekDock(); //opCode-143
 /// -127 to 127
 /// \param[in] vacuum Duty cycle for the vacuum.
 /// 0 to 127
-void pwmMotors(uint8_t mainBrush, uint8_t sideBrush, uint8_t vacuum); //opCode-144
+void roombaPWMmotors(uint8_t mainBrush, uint8_t sideBrush, uint8_t vacuum); //opCode-144
 
 /// Starts the Roomba driving with a specified velocity for each wheel
 /// \param[in] rightVelocity Right wheel velocity in mm/s 
 /// -500 to 500
 /// \param[in] leftVelocity Left wheel velocity in mm/s 
 /// -500 to 500
-void driveDirect(int16_t rightVelocity, int16_t leftVelocity); //opCode-145
+void roombaDriveDirect(int16_t rightVelocity, int16_t leftVelocity); //opCode-145
 
 /// Starts the Roomba driving with a specified PWM for each wheel
 /// \param[in] rightPWM Right wheel PWM 
 /// -255 to 255
 /// \param[in] leftPWM Left wheel PWM 
 /// -255 to 255
-void drivePWM(int16_t rightPWM, int16_t leftPWM); //opCode-146
-
-/// Requests that a stream of sensor data packets be sent by the Roomba.
-/// See the Open Interface manual for details on the resutting data.
-/// The packets will be sent every 15ms.
-/// You can use pollSensors() to receive sensor data streams.
-/// Create only. No equivalent on Roomba.
-/// See the Open Interface maual for more details and limitations.
-/// \param[in] packets Array specifying sensor packet IDs from Create2::Sensor to be sent.
-/// \param[in] numPackets Number of IDs in packetIDs
-void stream(const uint8_t* packets, uint8_t numPackets); //opCode-148.
-
-/// Reads the sensor data for the specified set of sensor packet IDs. Note that different sensor packets have 
-/// different lengths, and it is the callers responsibilty to make sure length agrees with the expected 
-/// length of the sensor data. See the Open Interface manual for details on sensor packet lengths.
-/// Blocks until all length bytes are read or a read timeout occurs.
-/// Create only. No equivalent on Roomba.
-/// \param[in] packetIDs Array of IDs from Create2::Sensor of the sensor packets to read
-/// \param[in] numPackets number of IDs in the packetIDs array
-/// \param[out] destination Destination where the read data is stored. 
-/// Must have at least len bytes available.
-/// \param[in] length Number of sensor data bytes to read and store to dest.
-/// \return true if all length bytes were successfully read. Returns false in the case of a timeout 
-/// on reading any byte.
-boolean queryList(const uint8_t* packetIDs, uint8_t numPackets, uint8_t* destination, uint8_t length); //opCode-149 
-
-/// Pause or resume a stream of sensor data packets previously requested by stream()
-/// \param[in] state One of Create2::StreamCommand. The status of the stream command. 
-/// Either pause (0) or resume (1).
-void streamCommand(StreamCommand state); //opCode-150
+void roombaDrivePWM(int16_t rightPWM, int16_t leftPWM); //opCode-146
 
 /// Controls the state of the scheduleing LEDs on the Roomba.
 /// See the Open Interface for details on the parameters.
 /// No change to mode
 /// \param[in] weekdayBits bitmask for the weekday LEDs
 /// \param[in] schedulingBits bitmask for the scheduling LEDs
-void scheduleLEDs(uint8_t weekdayBits, uint8_t schedulingBits); //opCode-162
+void roombaScheduleLEDs(uint8_t weekdayBits, uint8_t schedulingBits); //opCode-162
 
 /// Controls the four 7-segment displays on the Roomba.
 /// Digits are ordered from left to right on the robot 3,2,1,0.
@@ -416,7 +360,7 @@ void scheduleLEDs(uint8_t weekdayBits, uint8_t schedulingBits); //opCode-162
 /// \param[in] digit2 Bitmask for the second digit from the left.
 /// \param[in] digit1 Bitmask for the second digit from the right.
 /// \param[in] digit0 Bitmask for the rightmost digit.
-void digitLEDsRaw(uint8_t digit3, uint8_t digit2, uint8_t digit1, uint8_t digit0); //opCode-163
+void roombaDigitLEDsRaw(uint8_t digit3, uint8_t digit2, uint8_t digit1, uint8_t digit0); //opCode-163
 
 /// Controls the four 7-segment displays on the Roomba using ASCII code.
 /// See the Open Interface for a chart of ASCII values.
@@ -425,14 +369,13 @@ void digitLEDsRaw(uint8_t digit3, uint8_t digit2, uint8_t digit1, uint8_t digit0
 /// \param[in] digit2 ASCII code for the second display from the left.
 /// \param[in] digit1 ASCII code for the second dispaly from the right.
 /// \param[in] digit0 ASCII code for the rightmost display.
-void digitLEDsASCII(uint8_t digit3, uint8_t digit2, uint8_t digit1, uint8_t digit0); //opCode-164
-
+void roombaDigitLEDsASCII(uint8_t digit3, uint8_t digit2, uint8_t digit1, uint8_t digit0); //opCode-164
 /// Lets you push Roomba's buttons. Code equilalent of pushing a button. 
 /// Button will automatically release after 1/6th of a second
 /// No change to mode
 /// \param[in] buttons Bitmask for the button being 'pressed'.
 /// ORed combination of CREATE2_MASK_BUTTON_*
-void buttons(uint8_t buttons); //opCode-165
+void roombaButtons(uint8_t buttons); //opCode-165
 
 /// This command sends Roomba a new schedule. 
 /// To clear the schedule, send all 0s.
@@ -440,7 +383,7 @@ void buttons(uint8_t buttons); //opCode-165
 /// \param[in] days Bitmask for which days the schedule is being set
 /// \param[in] schedule Array holding the hour and minute for the schedule for each day.
 /// This is in the format [Sun Hour][Sun Minute][Mon Hour][Mon Minute]...[Sat Hour][Sat Minute]
-void schedule(uint8_t days, uint8_t* schedule); //opCode-167
+void roombaSchedule(uint8_t days, uint8_t* schedule); //opCode-167
 
 /// This command sets Roomba's clock
 /// No change to mode
@@ -450,61 +393,10 @@ void schedule(uint8_t days, uint8_t* schedule); //opCode-167
 /// 0 to 23
 /// \param[in] minute The current minute
 /// 0 to 59
-void setDayTime(uint8_t day, uint8_t hour, uint8_t minute); //opCode-168
-
-/// Low level funciton to read length bytes of data from the Roomba
-/// Blocks untill all length bytes are read or a read timeout occurs.
-/// \param[out] destination Destination where the read data is stored. 
-/// Must have at least length bytes available.
-/// \param[in] length Number of bytes to read
-/// \return true if all length bytes were successfully read. Returns false 
-/// in the case of a timeout on reading any byte.
-boolean getData(uint8_t* destination, uint8_t length);
+void roombaSetDayTime(uint8_t day, uint8_t hour, uint8_t minute); //opCode-168
 
 /// Stops the OI - stops all streams and the robot will no longer take commands.
 /// Changes mode to off
-void stop(); //opCode-173
-
-/// Polls the serial input for data belonging to a sensor data stream previously requested with stream().
-/// As sensor data is read it is appended to dest until at most length bytes are stored there. 
-/// When a complete sensor stream has been read with a correct checksum, returns true. 
-/// See the Open Interface manual for details on how the sensor data will be encoded in destination.
-/// Discards characters that are not part of a stream, such as the messages the Roomba 
-/// sends at startup and while charging.
-/// Create only. No equivalent on Roomba.
-/// \param[out] destination Destination where the read data is stored. 
-/// Must have at least length bytes available.
-/// \param[in] length Max number of sensor data bytes to store to destination
-/// \return true when a complete stream has been read, and the checksum is correct. The sensor data
-/// (at most length bytes) will have been stored into destination, ready for the caller to decode.
-boolean pollSensors(uint8_t* destination, uint8_t length);
-
-/// Forces the Create 2 to change its baud rate to the default rate 19200.
-/// \param[in] baudPin The pin attached to the Baud Rate Change DIN pin.
-void setBaudDefault(uint8_t baudPin);
-
-private:
-/// \enum PollState
-/// Values for _pollState
-typedef enum{
-  PollStateIdle		= 0,
-  PollStateWaitCount	= 1,
-  PollStateWaitBytes 	= 2,
-  PollStateWaitChecksum	= 3,
-} PollState;
-
-//helper methods
-uint32_t _baud; /// The baud rate to use for the serial port
-HardwareSerial* _serial; /// The serial port to use to talk to the Roomba
-
-/// Variables for keeping track of polling of data streams
-
-uint8_t 	_pollState; /// Current state of polling
-
-uint8_t 	_pollSize; /// Expected size of the data stream in bytes
-
-uint8_t 	_pollCount; /// Num of bytes read so far
-
-uint8_t 	_pollCheckSum; /// Running checksum counter of data bytes + counts 
+void roombaStop(); //opCode-173
 
 #endif
